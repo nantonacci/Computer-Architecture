@@ -22,6 +22,10 @@ class CPU:
             0b01000111: self.prn,  
             0b10100010: self.mult,
             0b00000001: self.hlt,
+            0b01000101: self.push,
+            0b01000110: self.pop,
+            0b01010000: self.call,
+            0b00010001: self.ret
         }
 
         if func in branch_table:
@@ -49,6 +53,31 @@ class CPU:
     def mult(self):
         self.alu('mult', self.pc+1, self.pc+2)
         self.pc += 3
+
+    def push(self, value = None):
+        self.sp-=1
+
+        if not value:
+            value = self.reg[self.ram_read(self.pc+1)]
+        
+        self.ram_write(value, self.reg[self.sp])
+        self.pc+=2
+
+    def pop(self):
+        value = self.ram[self.sp]
+        self.reg[self.ram[self.pc+1]] = value
+        self.sp += 1
+        self.pc += 2
+
+    def call(self):
+        self.reg[self.sp] -= 1
+        self.ram_write(self.reg[self.sp], self.pc + 1)
+        self.pc+=2
+        self.trace()
+
+    def ret(self):
+        self.pc = self.ram_read(self.reg[self.sp])
+        self.reg[self.sp] +=1
 
     def ram_read(self, mar):
         return self.ram[mar]
